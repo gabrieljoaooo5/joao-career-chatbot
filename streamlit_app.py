@@ -4,10 +4,20 @@ import json
 import requests
 from openai import OpenAI
 
-# Load environment variables
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN")
-PUSHOVER_USER = os.getenv("PUSHOVER_USER")
+# Load environment variables from Streamlit secrets
+try:
+    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+    PUSHOVER_TOKEN = st.secrets.get("PUSHOVER_TOKEN")
+    PUSHOVER_USER = st.secrets.get("PUSHOVER_USER")
+except Exception as e:
+    st.error(f"❌ Erro ao carregar variáveis de ambiente: {str(e)}")
+    st.error("Certifique-se de que as variáveis estão configuradas no Streamlit Cloud Secrets.")
+    st.stop()
+
+# Check if required environment variables are set
+if not OPENAI_API_KEY:
+    st.error("❌ OPENAI_API_KEY não está configurada. Por favor, configure esta variável de ambiente no Streamlit Cloud Secrets.")
+    st.stop()
 
 def push(text):
     if PUSHOVER_TOKEN and PUSHOVER_USER:
@@ -104,9 +114,13 @@ He is valued for his ability to keep the user experience in focus, even when wor
 
 class Me:
     def __init__(self):
-        self.openai = OpenAI(api_key=OPENAI_API_KEY)
-        self.name = "João Andrade"
-        self.summary = SUMMARY
+        try:
+            self.openai = OpenAI(api_key=OPENAI_API_KEY)
+            self.name = "João Andrade"
+            self.summary = SUMMARY
+        except Exception as e:
+            st.error(f"❌ Erro ao inicializar o chatbot: {str(e)}")
+            st.stop()
 
     def handle_tool_call(self, tool_calls):
         results = []
